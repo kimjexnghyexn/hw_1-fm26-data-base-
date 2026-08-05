@@ -6,7 +6,7 @@
 ## 2. 실행 환경
 - OS: Windows 11 + WSL2 (Ubuntu 22.04)
 - 쉘: bash
-- Docker: (docker --version 4.85.0)
+- Docker: (docker --version 29.6.2)
 - Git: (git --version 2.55.0.3)
 
 ## 3. 수행 항목 체크리스트
@@ -93,6 +93,8 @@ $ pwd
 
 ## 5. 트러블슈팅
 ### 사례 1: g++ 부재 문제
-- 문제 → 원인 가설 → 확인 → 해결 (Docker 멀티스테이지)
+```bash
+$ docker --version
+```
 ### 사례 2: Windows 권한 문제
 - 문제 → 원인 가설 → 확인 → 해결 (WSL2 도입)
