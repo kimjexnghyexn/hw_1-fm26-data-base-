@@ -242,32 +242,7 @@ CONTAINER ID   IMAGE     COMMAND       CREATED          STATUS          PORTS   
 23d057946449   ubuntu    "sleep 300"   51 seconds ago   Up 50 seconds             test-ubuntu
 
 $ docker logs test-ubuntu
-# test_ubuntu 컨테이너에서는 메인 프로세스가 아무것도 출력하지않고 sleep 300으로 해당 시간동안 살아있게 했기에 docker logs를 명령했을때 아무 것도 나오지 않았다. fm26 컨테이너를 만들고 다시 docker logs 명령 후의 출력 결과를 첨부하였다.
-
-$ docker logs fm26-web # 뒤에서 만든 컨테이너에 대한 출력 docker logs 명령어 출력 결과를 이 부분에 사후 추가했다. 
-# 이를 통해 docekr logs 명령어는 해당 컨테이너에 메인 프로세서(nginx)가 출력한 내용을 보여줌을 확인했다.
-
-/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
-/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
-/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
-10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
-10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
-/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
-/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
-/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
-/docker-entrypoint.sh: Configuration complete; ready for start up
-2026/08/05 04:07:15 [notice] 1#1: using the "epoll" event method
-2026/08/05 04:07:15 [notice] 1#1: nginx/1.31.3
-2026/08/05 04:07:15 [notice] 1#1: built by gcc 15.2.0 (Alpine 15.2.0) 
-2026/08/05 04:07:15 [notice] 1#1: OS: Linux 6.18.33.2-microsoft-standard-WSL2
-2026/08/05 04:07:15 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
-2026/08/05 04:07:15 [notice] 1#1: start worker processes
-2026/08/05 04:07:15 [notice] 1#1: start worker process 30
-...
-2026/08/05 04:07:15 [notice] 1#1: start worker process 45
-172.17.0.1 - - [05/Aug/2026:05:16:14 +0000] "GET / HTTP/1.1" 200 565 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0" "-"   
-172.17.0.1 - - [06/Aug/2026:02:22:43 +0000] "GET / HTTP/1.1" 200 565 "-" "curl/8.18.0" "-"
-172.17.0.1 - - [06/Aug/2026:02:22:51 +0000] "GET / HTTP/1.1" 200 565 "-" "curl/8.18.0" "-"
+# 아무것도 나오지 않았다?. (트러블슈팅 #2 참조)
 
 $ docker stop test-ubuntu
 $ docker rm test-ubuntu
@@ -278,7 +253,7 @@ $ docker rm test-ubuntu
 ### 4-6. Dockerfile 기반 커스텀 이미지
 
 - **선택 베이스**: `nginx:alpine` (방식 A: 웹서버 베이스 이미지 활용)
-- **커스텀 포인트**: `app/index.html`(선수 이름/능력치 표)을 nginx 기본 서빙 경로로 교체
+- **커스텀 포인트**: `app/index.html`(선수 이름/능력치 표)을 nginx 기본 서빙 경로로 교체했다.
 
 ```dockerfile
 FROM nginx:alpine
@@ -306,7 +281,7 @@ $ docker run -d --name fm26-web -p 8080:80 fm26-web:1.0
 114e9e26020e9cad165d0ededc8bdddd030f434d8ef7a9e3844ebc76854115af
 
 $ docker ps
-CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS          PORTS                                     NAMES
+CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS          PORTS                 NAMES
 114e9e26020e   fm26-web:1.0   "/docker-entrypoint.…"   16 seconds ago   Up 15 seconds   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   fm26-web
 
 $ curl http://localhost:8080
@@ -352,7 +327,7 @@ $ docker run -d --name fm26-web -p 8080:80 -v ~/fm26/app:/usr/share/nginx/html f
 86b284c5a4b3a9b965d75209d42feb3e49e2449f1a3f2ec264e0ce9adf70e4cd
 
 $ docker exec fm26-web cat /visit-log.txt
-cat: can't open '/visit-log.txt': No such file or directory
+cat: can't open '/visit-log.txt': No such file or directory 
 ```
 
 → 볼륨 없이 컨테이너 내부에 저장한 데이터는 컨테이너 삭제 시 함께 사라짐을 확인.
@@ -400,7 +375,6 @@ core.logallrefupdates=true
 
 **GitHub 연동**
 
-> `TODO`: `git remote add origin ...` → `git push` 수행 로그와, VSCode 소스 제어 패널 + GitHub 계정 로그인 상태가 보이는 스크린샷을 여기에 첨부
 
 ## 6. 트러블슈팅
 
@@ -411,9 +385,34 @@ core.logallrefupdates=true
 - **확인**: `groups $USER` 실행 결과 `docker` 그룹이 목록에 없는 것을 확인
 - **해결/대안**: `sudo usermod -aG docker $USER`로 계정을 `docker` 그룹에 추가. 그룹 변경사항을 즉시 반영하기 위해 재로그인 필요
 
-### 트러블슈팅 #2: `newgrp` 명령을 찾을 수 없음
+### 트러블슈팅 #2: `docker logs test-ubuntu` 실행 결과가 비어있음
 
-- **문제**: 그룹 변경사항을 즉시 반영하려고 `newgrp docker`를 실행했으나 `Command 'newgrp' not found` 에러 발생
-- **원인 가설**: 현재 WSL(Ubuntu) 환경에 `newgrp` 명령을 포함하는 `util-linux-extra` 패키지가 설치되어 있지 않음
-- **확인**: 패키지 설치 없이 셸 세션을 완전히 새로 시작하면 그룹 변경사항이 반영되는지 확인 필요
-- **해결/대안**: 패키지를 설치하는 대신, Windows PowerShell에서 `wsl --shutdown`으로 WSL 자체를 재시작 후 터미널을 다시 열어 그룹 변경사항 반영. 이후 `groups $USER`에 `docker` 그룹이 포함되고 `docker info`가 정상 출력됨을 확인 (4-4 참고)
+- **문제**: `test-ubuntu` 컨테이너에 `docker exec`로 들어가 `echo` 명령까지 실행했는데도, `docker logs test-ubuntu`를 실행하면 아무 출력도 나오지 않음
+- **원인 가설**: `docker logs`가 컨테이너 안에서 일어난 모든 동작을 기록하는 게 아니라, 특정 프로세스의 출력만 캡처하는 것으로 추정. `test-ubuntu`의 메인 프로세스는 `sleep 300`인데, 이 명령은 애초에 화면에 아무것도 출력하지 않으므로 로그가 비어있는 게 정상일 가능성이 있음
+- **확인**: 실제 서비스가 동작 중인 `fm26-web`(nginx) 컨테이너에 동일하게 `docker logs fm26-web`을 실행. nginx의 시작 로그와, `curl`/브라우저로 접속했던 HTTP 요청 기록(`GET / HTTP/1.1" 200 ...`)이 정상적으로 출력됨을 확인
+- **해결/대안**: `docker logs`는 컨테이너의 **메인 프로세스(PID 1)가 표준출력(stdout)으로 내보내는 내용만** 보여준다는 것을 확인함. `test-ubuntu`는 메인 프로세스가 `sleep`이라 원래 출력이 없어 로그가 비어있는 게 정상 동작이었고, `docker exec`로 들어가서 실행한 `echo`는 그 exec 세션 화면에만 표시될 뿐 컨테이너의 로그에는 기록되지 않는다는 것을 이해함. 이후 `docker logs` 검증 항목은 실제로 접속 기록이 남는 `fm26-web` 컨테이너 결과로 대체하여 기록함
+
+```bash
+$ docker logs fm26-web
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2026/08/05 04:07:15 [notice] 1#1: using the "epoll" event method
+2026/08/05 04:07:15 [notice] 1#1: nginx/1.31.3
+2026/08/05 04:07:15 [notice] 1#1: built by gcc 15.2.0 (Alpine 15.2.0) 
+2026/08/05 04:07:15 [notice] 1#1: OS: Linux 6.18.33.2-microsoft-standard-WSL2
+2026/08/05 04:07:15 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2026/08/05 04:07:15 [notice] 1#1: start worker processes
+2026/08/05 04:07:15 [notice] 1#1: start worker process 30
+...
+2026/08/05 04:07:15 [notice] 1#1: start worker process 45
+172.17.0.1 - - [05/Aug/2026:05:16:14 +0000] "GET / HTTP/1.1" 200 565 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0" "-"   
+172.17.0.1 - - [06/Aug/2026:02:22:43 +0000] "GET / HTTP/1.1" 200 565 "-" "curl/8.18.0" "-"
+172.17.0.1 - - [06/Aug/2026:02:22:51 +0000] "GET / HTTP/1.1" 200 565 "-" "curl/8.18.0" "-"
+```
