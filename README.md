@@ -295,7 +295,7 @@ $ curl http://localhost:8080
 → 호스트 8080번 포트가 컨테이너 80번(nginx)에 정상 매핑되어, `curl` 응답으로 `index.html` 내용이 그대로 반환됨을 확인하였고 그 증거로 브라우저 접속 사진을 첨부함.
 
 **브라우저 접속 증거**: `http://localhost:8080` 접속 확인 완료.
-![매핑성공](<스크린샷 2026-08-05 121840.png>)
+![매핑성공](<screenshots/스크린샷 2026-08-05 121840.png>)
 
 ### 4-8. 바인드 마운트 검증
 
@@ -306,8 +306,8 @@ $ docker run -d --name fm26-web -p 8080:80 -v ~/fm26/app:/usr/share/nginx/html f
 ```
 
 호스트의 `app/` 폴더를 컨테이너의 nginx 서빙 경로에 실시간 연결(바인드 마운트)한 뒤, 호스트에서 `app/index.html`을 수정하고(선수 한명을 더 추가했으며, Rating을 Pot(포텐셜)로 바꾸었다.) 컨테이너 재빌드 없이 반영되는지 확인했다.
-![수정 전](<스크린샷 2026-08-05 121840-1.png>)
-![수정 후](<스크린샷 2026-08-05 141627.png>)
+![수정 전](<screenshots/스크린샷 2026-08-05 121840-1.png>)
+![수정 후](<screenshots/스크린샷 2026-08-05 141627.png>)
 
 ### 4-9. 볼륨 영속성 검증
 
@@ -389,7 +389,7 @@ To https://github.com/kimjexnghyexn/hw_1-fm26-data-base-.git
  * [new branch]      main -> main
 branch 'main' set up to track 'origin/main'.
 ```
-![깃허브 연동 스크린샷](image.png)
+![깃허브 연동 스크린샷](screenshots/image.png)
 ## 6. 트러블슈팅
 
 ### 트러블슈팅 #1: `docker info` 실행 시 permission denied
