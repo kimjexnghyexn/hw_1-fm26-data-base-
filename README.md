@@ -374,8 +374,22 @@ core.logallrefupdates=true
 → 사용자 이름/이메일, 기본 브랜치(main)가 정상 설정됨을 확인.
 
 **GitHub 연동**
-
-
+```bash
+user@messiah:~/fm26$ git remote add origin https://github.com/kimjexnghyexn/hw_1-fm26-data-base-.git
+user@messiah:~/fm26$ git branch -M main
+user@messiah:~/fm26$ git push -u origin main
+Enumerating objects: 35, done.
+Counting objects: 100% (35/35), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (30/30), done.
+Writing objects: 100% (35/35), 132.62 KiB | 22.10 MiB/s, done.
+Total 35 (delta 10), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (10/10), done.
+To https://github.com/kimjexnghyexn/hw_1-fm26-data-base-.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+```
+![깃허브 연동 스크린샷](image.png)
 ## 6. 트러블슈팅
 
 ### 트러블슈팅 #1: `docker info` 실행 시 permission denied
