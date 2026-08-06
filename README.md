@@ -279,7 +279,11 @@ $ docker build -t fm26-web:1.0 .
 ```bash
 $ docker run -d --name fm26-web -p 8080:80 fm26-web:1.0
 114e9e26020e9cad165d0ededc8bdddd030f434d8ef7a9e3844ebc76854115af
+```
+포트매핑의 이유
+컨테이너는 호스트와 분리된 자기만의 네트워크 네임스페이스를 가진다. 즉, 컨테이너 내부의 80번 포트와 호스트의 80번 포트는 이름만 같을 뿐 서로 다른 별개의 공간이다. 이로 인해 기본적으로 외부에서 컨테이너로의 네트워크 접근은 차단된다. 다만 nginx처럼 외부 사용자가 실제로 접근해야 하는 서비스는 포트 매핑을 통해 접근할 수 있다.
 
+```bash
 $ docker ps
 CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS          PORTS                 NAMES
 114e9e26020e   fm26-web:1.0   "/docker-entrypoint.…"   16 seconds ago   Up 15 seconds   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp   fm26-web
