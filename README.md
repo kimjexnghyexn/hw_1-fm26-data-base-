@@ -1,19 +1,17 @@
-# FM26 선수 데이터 웹앱
+# FM26 선수 데이터 확인 앱
 
 ## 1. 프로젝트 개요
 
-FM26(Football Manager 26)에서 영감을 받아, 선수 이름과 능력치 데이터를 직접 정리한 파일(`players.txt`)을 만들고, 이를 Docker 컨테이너(nginx)로 실행되는 정적 웹 페이지(`app/index.html`)를 통해 다른 사람들도 브라우저로 확인할 수 있도록 만든 프로젝트다.
+FM26(Football Manager 26)에서 영감을 받아, 선수 이름과 능력치 데이터(포텐셜)를 직접 정리한 파일(`players.txt`)을 만들고, 이를 Docker 컨테이너(nginx)로 실행되는 정적 웹 페이지(`app/index.html`)를 통해 브라우저로 확인할 수 있도록 만든 프로젝트.
 
 이 과정에서 터미널(CLI) 기본 조작, 파일 권한 관리, Docker 이미지/컨테이너 운영, 포트 매핑, 바인드 마운트, 볼륨을 이용한 데이터 영속성, Git/GitHub 버전 관리를 직접 실습하고 검증했다.
 
 ## 2. 실행 환경
 
-| 항목 | 내용 |
-|---|---|
 | OS | Windows 11 + WSL2 (Ubuntu 22.04) |
 | 쉘/터미널 | bash |
-| Docker 버전 | Docker version 29.6.2|
-| Git 버전 | git version 2.55.0.3 |
+| Docker 버전 | version 29.6.2, build dfc4efb|
+| Git 버전 | version 2.55.0.3 |
 
 ## 3. 수행 항목 체크리스트
 
@@ -33,7 +31,9 @@ FM26(Football Manager 26)에서 영감을 받아, 선수 이름과 능력치 데
 
 ### 4-1. 터미널 기초 명령어
 
-`pwd`로 현재 위치를 확인하고, `touch`로 빈 선수 데이터 파일을 생성한 뒤 `ls -al`로
+기본적 터미널 조작을 통해 프로젝트의 바탕이되는 파일을 만들 예정.
+
+`pwd`로 현재 위치가 알맞은 폴더(fm26)에 있는지 확인하고, `touch`로 빈 선수 데이터 파일(players.txt)을 생성한 뒤 `ls -al`로
 목록(생성 여부와 권한 및 숨겨진 파일)을 확인했다.
 
 ```bash
@@ -48,7 +48,7 @@ drwxr-x--- 7 user user 4096 Aug  4 20:42 ..
 -rw-r--r-- 1 user user    0 Aug  4 21:01 players.txt
 ```
 
-→ `~/fm26` 경로에 크기 0인 빈 파일이 생성되었고, 소유자(user)에게 읽기/쓰기 권한(`rw-`)이 있음을 확인.
+→ `~/fm26` 경로에 크기 0인 빈 파일이 생성되었고, 소유자(user)에게 읽기/쓰기 권한(`rw-`)이 있음을 확인했다.
 
 `>`(덮어쓰기)로 첫 데이터를 넣고, `>>`(이어쓰기)로 선수를 추가한 뒤 `cat`으로 파일 내용을 확인했다.
 
@@ -62,7 +62,7 @@ messi 200
 kai rooney -8.5
 ```
 
-→ 3명의 선수 데이터가 순서대로 누적 저장됨. `>>` 사용 시 기존 내용이 유지됨을 확인.
+→ 3명의 선수 데이터가 순서대로 누적 저장됨. `>>` 사용 시 기존 내용이 유지됨을 확인했다.
 
 원본을 복사한 뒤 백업 전용 폴더를 만들어 이동시키고, 결과를 확인했다.
 
@@ -74,12 +74,12 @@ $ ls backup/
 players_backup.txt
 ```
 
-→ 원본(`players.txt`)은 루트에 유지되고, 복사본은 `backup/` 폴더로 분리됨을 확인.
+→ 원본(`players.txt`)은 루트에 유지되고, 복사본은 `backup/` 폴더로 분리됨을 확인했다.
 
 파일명을 잘못 입력해 생성된 파일을 `rm`으로 삭제하고, 올바른 파일에 데이터를 추가했다.
 
 ```bash
-$ echo "jj gabreil -8.5" >> playerd.txt   # 오타: playerd
+$ echo "jj gabreil -8.5" >> playerd.txt   # 오타
 $ rm playerd.txt
 $ echo "jj gabreil -8.5" >> players.txt
 $ cat players.txt
@@ -89,9 +89,7 @@ kai rooney -8.5
 jj gabreil -8.5
 ```
 
-→ 불필요한 파일이 제거되고, 최종적으로 4명의 선수 데이터가 정상 저장됨을 확인.
-
-### 4-2. 디렉토리 이동 (`cd`)
+→ 불필요한 파일이 제거되고, 최종적으로 4명의 선수 데이터가 정상 저장됨을 확인했다.
 
 하위 폴더로 이동 후 상위 폴더로 복귀하며 `pwd`로 위치를 검증했다.
 
@@ -102,9 +100,9 @@ $ pwd
 /home/user/fm26
 ```
 
-→ 상대 경로(`..`)로 상위 디렉토리 이동이 정상 동작함을 확인.
+→ 상대 경로(`..`)로 상위 디렉토리 이동이 정상 동작함을 확인했다.
 
-### 4-3. 권한 부여
+### 4-2. 권한 부여
 
 파일 1개(`players.txt`), 디렉토리 1개(`backup`)에 대해 권한을 변경하고 전/후를 비교했다.
 
@@ -117,7 +115,8 @@ $ ls -l players.txt
 -r--r--r-- 1 user user 52 Aug  4 21:10 players.txt
 ```
 
-→ `players.txt`를 644(소유자 읽기/쓰기, 그룹·기타 읽기)에서 444(모두 읽기 전용)로 변경
+→ `players.txt`를 644(소유자 읽기/쓰기, 그룹·기타 읽기)에서 444(모두 읽기 전용)로 변경했다(개발자 혼자 임의로 선수 구성 변경 방지).
+그 후 변경 시 오류 메세지가 뜨는 것을 확인했다.
 
 ```bash
 $ ls -ld backup
@@ -128,7 +127,9 @@ $ ls -ld backup
 drwx------ 2 user user 4096 Aug  4 21:03 backup
 ```
 
-→ `backup` 디렉토리를 755(소유자 전체 권한, 그룹·기타 읽기+진입)에서 700(소유자만 접근 가능)으로 변경
+→ `backup` 디렉토리를 755(소유자 전체 권한, 그룹·기타 읽기+진입)에서 700(소유자만 접근 가능)으로 변경했다.(백업 파일을 다른 사람이 볼 이유가 없음)
+
+기본적인 터미널 조작을 통해 폴더 및 파일을 만들었다. Docker를 설치 후 웹사이트를 다른이에게 서빙하는 작업을 하겠다.
 
 ### 4-4. Docker 설치 및 점검
 
@@ -144,7 +145,7 @@ Server:
 permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
 ```
 
-→ 클라이언트는 정상이나 서버 연결에서 권한 오류 발생 (트러블슈팅 #1 참고). 해결 후 재확인:
+→ 클라이언트는 정상이나 서버 연결에서 권한 오류 발생(트러블슈팅 #1) 해결 후 재확인했다:
 
 ```bash
 $ groups $USER
@@ -171,7 +172,7 @@ Server:
 
 ### 4-5. Docker 기본 운영 명령
 
-`hello-world` 이미지를 실행하여 이미지 pull → 컨테이너 생성 → 실행 흐름을 확인했다.
+`hello-world` 이미지를 실행하여 도커 기본 library에서 이미지 pull → 컨테이너 생성 → 실행 흐름을 확인했다.
 
 ```bash
 $ docker run hello-world
@@ -212,6 +213,11 @@ exit
 
 → `bash`가 컨테이너의 메인 프로세스였기 때문에 `exit` 시 컨테이너 자체도 함께 종료됨.
 
+# (증거 사후 추가) 컨테이너가 종료되었다는 증거를 첨부함
+```bash
+$ b621f92b2e5c   hello-world    "/hello"                 23 hours ago     Exited (0) 23 hours ago
+```
+
 **컨테이너 종료(exit) vs 유지(exec) 차이 관찰**: 백그라운드로 컨테이너를 띄운 뒤, `exec`으로 들어갔다 나와도 컨테이너가 계속 살아있는지 확인했다.
 
 ```bash
@@ -236,17 +242,38 @@ CONTAINER ID   IMAGE     COMMAND       CREATED          STATUS          PORTS   
 23d057946449   ubuntu    "sleep 300"   51 seconds ago   Up 50 seconds             test-ubuntu
 
 $ docker logs test-ubuntu
-(빈 출력 — sleep 300은 화면 출력이 없는 명령이라 정상)
+# test_ubuntu 컨테이너에서는 메인 프로세스가 아무것도 출력하지않고 sleep 300으로 해당 시간동안 살아있게 했기에 docker logs를 명령했을때 아무 것도 나오지 않았다. fm26 컨테이너를 만들고 다시 docker logs 명령 후의 출력 결과를 첨부하였다.
 
-$ docker stats --no-stream
-CONTAINER ID   NAME          CPU %     MEM USAGE / LIMIT    MEM %     NET I/O         BLOCK I/O        PIDS
-23d057946449   test-ubuntu   0.00%     10.16MiB / 15.4GiB   0.06%     1.17kB / 126B   17.9MB / 4.1kB   1
+$ docker logs fm26-web # 뒤에서 만든 컨테이너에 대한 출력 docker logs 명령어 출력 결과를 이 부분에 사후 추가했다. 
+# 이를 통해 docekr logs 명령어는 해당 컨테이너에 메인 프로세서(nginx)가 출력한 내용을 보여줌을 확인했다.
+
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2026/08/05 04:07:15 [notice] 1#1: using the "epoll" event method
+2026/08/05 04:07:15 [notice] 1#1: nginx/1.31.3
+2026/08/05 04:07:15 [notice] 1#1: built by gcc 15.2.0 (Alpine 15.2.0) 
+2026/08/05 04:07:15 [notice] 1#1: OS: Linux 6.18.33.2-microsoft-standard-WSL2
+2026/08/05 04:07:15 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2026/08/05 04:07:15 [notice] 1#1: start worker processes
+2026/08/05 04:07:15 [notice] 1#1: start worker process 30
+...
+2026/08/05 04:07:15 [notice] 1#1: start worker process 45
+172.17.0.1 - - [05/Aug/2026:05:16:14 +0000] "GET / HTTP/1.1" 200 565 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0" "-"   
+172.17.0.1 - - [06/Aug/2026:02:22:43 +0000] "GET / HTTP/1.1" 200 565 "-" "curl/8.18.0" "-"
+172.17.0.1 - - [06/Aug/2026:02:22:51 +0000] "GET / HTTP/1.1" 200 565 "-" "curl/8.18.0" "-"
 
 $ docker stop test-ubuntu
 $ docker rm test-ubuntu
 ```
 
-→ 메인 프로세스가 `sleep 300`이었기 때문에, `exec`으로 들어갔다 `exit`해도 컨테이너는 `Up` 상태로 계속 유지됨. `docker run -it ... exit`(종료)과 명확히 대조됨.
+→ 메인 프로세스가 `sleep 300`이었기 때문에, `exec`으로 들어갔다 `exit`해도 컨테이너는 `Up` 상태로 계속 유지됨. `docker run -it ... exit`(종료)과 명확히 대조됨을 확인했다.
 
 ### 4-6. Dockerfile 기반 커스텀 이미지
 
@@ -290,10 +317,11 @@ $ curl http://localhost:8080
 <table border="1" cellpadding="8"> ... </table>
 ```
 
-→ 호스트 8080번 포트가 컨테이너 80번(nginx)에 정상 매핑되어, `curl` 응답으로 `index.html` 내용이 그대로 반환됨을 확인.
+→ 호스트 8080번 포트가 컨테이너 80번(nginx)에 정상 매핑되어, `curl` 응답으로 `index.html` 내용이 그대로 반환됨을 확인하였고 그 증거로 브라우저 접속 사진을 첨부함.
 
 **브라우저 접속 증거**: `http://localhost:8080` 접속 확인 완료.
-![접속증거](<스크린샷 2026-08-05 121840.png>)
+![매핑성공](<스크린샷 2026-08-05 121840.png>)
+
 ### 4-8. 바인드 마운트 검증
 
 ```bash
@@ -302,7 +330,7 @@ $ docker rm fm26-web
 $ docker run -d --name fm26-web -p 8080:80 -v ~/fm26/app:/usr/share/nginx/html fm26-web:1.0
 ```
 
-호스트의 `app/` 폴더를 컨테이너의 nginx 서빙 경로에 실시간 연결(바인드 마운트)한 뒤, 호스트에서 `app/index.html`을 수정하고 컨테이너 재빌드 없이 반영되는지 확인했다.
+호스트의 `app/` 폴더를 컨테이너의 nginx 서빙 경로에 실시간 연결(바인드 마운트)한 뒤, 호스트에서 `app/index.html`을 수정하고(선수 한명을 더 추가했으며, Rating을 Pot(포텐셜)로 바꾸었다.) 컨테이너 재빌드 없이 반영되는지 확인했다.
 ![수정 전](<스크린샷 2026-08-05 121840-1.png>)
 ![수정 후](<스크린샷 2026-08-05 141627.png>)
 
@@ -360,7 +388,7 @@ $ docker exec fm26-web cat /persist/visit-log.txt
 ```bash
 $ git config --list
 user.name=kimjexnghyexn
-user.email=kimjexn***@gmail.com
+user.email=kimjexnghyexn@gmail.com
 init.defaultbranch=main
 core.repositoryformatversion=0
 core.filemode=true
